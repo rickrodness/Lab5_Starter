@@ -1,5 +1,5 @@
-// explore.js
-// this script converts text to spoken words
+// This script enhances the web page by using the Web Speech API
+// to convert text to spoken words
 let synth;
 
 // Initialize on DOM content loaded
@@ -9,14 +9,22 @@ function setup() {
   synth = window.speechSynthesis;  // Assign the speech synthesis interface to 'synth'
   configureVoiceDropdown();        // Set up the voice selection dropdown
   setupSpeechButton();             // Set up the speech trigger button
+  populateVoiceList();             // Initially populate the voice list if already loaded
 }
 
 // Configures the dropdown for voice selection
 function configureVoiceDropdown() {
   let dropdown = document.getElementById("voice-select");
-  synth.addEventListener("voiceschanged", () => {
+  // Set up event listener for when available voices change
+  synth.onvoiceschanged = populateVoiceList;
+
+  function populateVoiceList() {
     let availableVoices = synth.getVoices();
-    dropdown.innerHTML = ''; // Clear the dropdown
+    if (!availableVoices.length) {
+      console.error('No voices available.'); // Log if no voices are found
+      return;
+    }
+    dropdown.innerHTML = ''; // Clear the dropdown before populating
 
     // Populate the dropdown with voice options
     availableVoices.forEach(voice => {
@@ -26,16 +34,16 @@ function configureVoiceDropdown() {
       voiceOption.setAttribute("data-name", voice.name);
       dropdown.appendChild(voiceOption);
     });
-  });
+  }
 }
 
 // Sets up the button that triggers speech synthesis
 function setupSpeechButton() {
-  let speechButton = document.querySelector("button"); 
+  let speechButton = document.querySelector("button");
   speechButton.addEventListener("click", () => {
     let selectedVoice = document.getElementById("voice-select").selectedOptions[0].getAttribute("data-name");
     let textToSpeak = document.getElementById("text-to-speak").value;
-    speakText(textToSpeak, selectedVoice);  // Play the text as speech
+    speakText(textToSpeak, selectedVoice);  // Trigger the speech synthesis
   });
 }
 
@@ -60,3 +68,4 @@ function speakText(text, selectedVoiceName) {
 
   synth.speak(utterance);  // Start speaking
 }
+
