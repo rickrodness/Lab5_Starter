@@ -1,71 +1,63 @@
 // explore.js
-// this script enhances the web page by using the Web Speech API
-// to convert text to spoken words
+// this script converts text to spoken words
 
-window.addEventListener("DOMContentLoaded", initialize);
+let synth;
 
-// initialize the main functions after the page is fully loaded
-function initialize() {
-  speechSynthesisEngine = window.speechSynthesis;
-  setupVoiceSelection();
-  setupSpeechTriggerButton();
+// Initialize on DOM content loaded
+window.addEventListener("DOMContentLoaded", setup);
+
+function setup() {
+  speechSynthsis = window.speechSynthesis;  // assign speech synthesis interface to 'speechSynthesis'
+  configureVoiceDropdown();                // voice selection dropdown
+  setupSpeechButton();                     // speech trigger button
 }
 
-// setup the dropdown menu for voice selection with dynamically loaded voice options
-function setupVoiceSelection() {
-  const voiceDropdown = document.getElementById("voice-select");
-  function populateVoices() {
-    const voices = speechSynthesisEngine.getVoices();
-    if (!voices.length) {
-      console.log("No voices found. Trying again...");
-      setTimeout(populateVoices, 250);
-      return;
-    }
-    voiceDropdown.innerHTML = '';
-    voices.forEach(voice => {
-      const option = document.createElement("option");
-      option.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — DEFAULT' : ''}`;
-      option.setAttribute("data-lang", voice.lang);
-      option.setAttribute("data-name", voice.name);
-      voiceDropdown.appendChild(option);
+// dropdown for voice selection
+function configureVoiceDropdown() {
+  let dropdown = document.getElementById("voice-select");
+  synth.addEventListener("voiceschanged", () => {
+    let availableVoices = synth.getVoices();
+    dropdown.innerHTML = ''; // clear dropdown
+
+    // populate the dropdown with different voice options
+    availableVoices.forEach(voice => {
+      const voiceOption = document.createElement("option");
+      voiceOption.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — DEFAULT' : ''}`;
+      voiceOption.setAttribute("data-lang", voice.lang);
+      voiceOption.setAttribute("data-name", voice.name);
+      dropdown.appendChild(voiceOption);
     });
-  }
-  
-  speechSynthesisEngine.onvoiceschanged = populateVoices;
-  populateVoices(); 
-}
-
-// setup the button that triggers speech synthesis
-function setupSpeechTriggerButton() {
-  const talkButton = document.querySelector("button"); 
-  talkButton.addEventListener("click", () => {
-    const selectedVoiceName = document.getElementById("voice-select").selectedOptions[0].getAttribute("data-name");
-    const textToSpeak = document.getElementById("text-to-speak").value;
-    speakText(textToSpeak, selectedVoiceName);
   });
 }
 
-// function to speak text using the selected voice
-function speakText(text, voiceName) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  const faceImage = document.querySelector("img"); 
+// button that triggers speech synthesis
+function setupSpeechButton() {
+  let speechButton = document.querySelector("button"); 
+  speechButton.addEventListener("click", () => {
+    let selectedVoice = document.getElementById("voice-select").selectedOptions[0].getAttribute("data-name");
+    let textToSpeak = document.getElementById("text-to-speak").value;
+    speakText(textToSpeak, selectedVoice);  // Play the text as speech
+  });
+}
 
-  // change face image to open mouth when speaking starts
+// speak text using the selected voice
+function speakText(text, selectedVoiceName) {
+  let utterance = new SpeechSynthesisUtterance(text);
+  let facialExpression = document.querySelector("img");
+
+  // change the image when speaking starts/ends
   utterance.addEventListener("start", () => {
-    faceImage.src = "assets/images/smiling-open.png";
+    facialExpression.src = "assets/images/smiling-open.png";
   });
-  // revert face image to smiling when speaking ends
   utterance.addEventListener("end", () => {
-    faceImage.src = "assets/images/smiling.png";
+    facialExpression.src = "assets/images/smiling.png";
   });
 
-  const voices = speechSynthesisEngine.getVoices();
-  const selectedVoice = voices.find(voice => voice.name === voiceName);
+  let voices = synth.getVoices();  // get all available voices
+  let selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
   if (selectedVoice) {
-    utterance.voice = selectedVoice;
+    utterance.voice = selectedVoice;  // set the voice to selected voice
   }
-  
-  speechSynthesisEngine.speak(utterance);
-}
 
+  synth.speak(utterance);  // start speaking
 }
