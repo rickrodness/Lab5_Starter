@@ -1,48 +1,92 @@
 // expose.js
+// built using a modular design where the script is
+// structured into 3 functions, each deal with a specific
+// aspect of the pages functionality. 
 
-// Listen for the DOMContentLoaded event to ensure the HTML is fully loaded before executing the script
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener("DOMContentLoaded", () => init());
+// Event Listener: handles user interactions with specific html elements
 
-// Initialization function that sets up the necessary event listeners and default states
+// hornConfigs object is a central repo for the configurations
+// of different horns, easy to access and modify
+const hornConfigs = {
+  "air-horn": {
+    imagePath: "assets/images/air-horn.svg",
+    soundPath: "assets/audio/air-horn.mp3",
+    confetti: false,
+  },
+  "car-horn": {
+    imagePath: "assets/images/car-horn.svg",
+    soundPath: "assets/audio/car-horn.mp3",
+    confetti: false,
+  },
+  "party-horn": {
+    imagePath: "assets/images/party-horn.svg",
+    soundPath: "assets/audio/party-horn.mp3",
+    confetti: true,
+  },
+};
+// instatiate JSConfetti, for party horn
+const confetti = new JSConfetti();
+
+// intitialize all components when the page loads
 function init() {
-  // Grab HTML elements by their IDs and store them in variables
-  const imgElement = document.getElementById('horn-image'); // Image element for the horn
-  const audioElement = document.getElementById('horn-sound'); // Audio element for playing horn sounds
-  const volumeIcon = document.getElementById('volume-icon'); // Icon representing the volume level
-  const volumeSlider = document.getElementById('volume-slider'); // Slider input for adjusting volume
-  const hornSelect = document.getElementById('horn-select'); // Dropdown for selecting different horns
-  const playButton = document.getElementById('play-sound'); // Button to trigger sound playback
+  configureHornSelector();
+  configureVolumeControl();
+  setupSoundPlayback();
+}
+// function to trigger confetti
+function triggerConfetti(){
+  confetti.addConfetti();
+}
+// horn select drop down menu
+// adjusts image, audio, and Y/N confetti
+function configureHornSelector() {
+  const selector = document.getElementById("horn-select");
+  const imageDisplay = document.querySelector("img");
+  const audioPlayer = document.querySelector("audio");
 
-  // Event listener for horn selection change
-  hornSelect.addEventListener('change', () => {
-    const hornType = hornSelect.value; // Get the selected horn type from the dropdown
-    imgElement.src = `assets/images/${hornType}-horn.svg`; // Update the image based on selected horn
-    audioElement.src = `assets/audio/${hornType}-horn.mp3`; // Set the appropriate sound file
-  });
+  selector.addEventListener("change", function(event) {
+    const selectedHorn = hornConfigs[event.target.value];
+    imageDisplay.src = selectedHorn.imagePath;
+    audioPlayer.src = selectedHorn.soundPath;
 
-  // Event listener for volume slider adjustment
-  volumeSlider.addEventListener('input', () => {
-    const volume = parseInt(volumeSlider.value); // Parse the volume value from the slider input
-    audioElement.volume = volume / 100; // Convert the slider value to a decimal for the audio volume
-
-    // Update the volume icon based on the slider's value
-    if (volume === 0) {
-      volumeIcon.src = 'assets/icons/volume-level-0.svg'; // Mute icon
-    } else if (volume < 33) {
-      volumeIcon.src = 'assets/icons/volume-level-1.svg'; // Low volume icon
-    } else if (volume < 67) {
-      volumeIcon.src = 'assets/icons/volume-level-2.svg'; // Medium volume icon
+    // manage confetti trigger
+    const button = document.querySelector("button");
+    if (selectedHorn.confetti) {
+      button.addEventListener("click", triggerConfetti, { once: true });
     } else {
-      volumeIcon.src = 'assets/icons/volume-level-3.svg'; // High volume icon
+      button.removeEventListener("click", triggerConfetti);
     }
   });
+}
+// volume control slider
+function configureVolumeControl() {
+  const volumeControl = document.getElementById("volume");
+  const volumeIcon = document.querySelector("#volume-controls img");
+  const audio = document.querySelector("audio");
 
-  // Event listener for playing the horn sound
-  playButton.addEventListener('click', () => {
-    audioElement.play(); // Play the audio file set on the audio element
-    if (hornSelect.value === 'party') {
-      const jsConfetti = new JSConfetti(); 
-      jsConfetti.addConfetti(); 
-    }
+  volumeControl.addEventListener("input", function(event) {
+    const vol = parseInt(event.target.value);
+    audio.volume = vol / 100;
+
+    // Update volume icon
+    // From 1 to < 33 volume the first volume level should be displayed
+    // From 33 to < 67 volume the second volume level should be displayed
+    // From 67 and up the third volume level should be displayed
+    let iconPath = "assets/icons/";
+    if (vol === 0) iconPath += "volume-level-0.svg"; // mute
+    else if (vol < 33) iconPath += "volume-level-1.svg";
+    else if (vol < 67) iconPath += "volume-level-2.svg";
+    else iconPath += "volume-level-3.svg";
+    volumeIcon.src = iconPath;
+  });
+}
+// play button to play horn when clicked
+function setupSoundPlayback() {
+  const playButton = document.querySelector("button");
+  const soundPlayer = document.querySelector("audio");
+
+  playButton.addEventListener("click", () => {
+    soundPlayer.play();
   });
 }
