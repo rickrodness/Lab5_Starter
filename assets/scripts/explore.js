@@ -1,25 +1,24 @@
 // explore.js
 // this script converts text to spoken words
-
 let synth;
 
 // Initialize on DOM content loaded
 window.addEventListener("DOMContentLoaded", setup);
 
 function setup() {
-  speechSynthsis = window.speechSynthesis;  // assign speech synthesis interface to 'speechSynthesis'
-  configureVoiceDropdown();                // voice selection dropdown
-  setupSpeechButton();                     // speech trigger button
+  synth = window.speechSynthesis;  // Assign the speech synthesis interface to 'synth'
+  configureVoiceDropdown();        // Set up the voice selection dropdown
+  setupSpeechButton();             // Set up the speech trigger button
 }
 
-// dropdown for voice selection
+// Configures the dropdown for voice selection
 function configureVoiceDropdown() {
   let dropdown = document.getElementById("voice-select");
   synth.addEventListener("voiceschanged", () => {
     let availableVoices = synth.getVoices();
-    dropdown.innerHTML = ''; // clear dropdown
+    dropdown.innerHTML = ''; // Clear the dropdown
 
-    // populate the dropdown with different voice options
+    // Populate the dropdown with voice options
     availableVoices.forEach(voice => {
       const voiceOption = document.createElement("option");
       voiceOption.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — DEFAULT' : ''}`;
@@ -30,7 +29,7 @@ function configureVoiceDropdown() {
   });
 }
 
-// button that triggers speech synthesis
+// Sets up the button that triggers speech synthesis
 function setupSpeechButton() {
   let speechButton = document.querySelector("button"); 
   speechButton.addEventListener("click", () => {
@@ -40,12 +39,12 @@ function setupSpeechButton() {
   });
 }
 
-// speak text using the selected voice
+// Speaks the text using the selected voice
 function speakText(text, selectedVoiceName) {
   let utterance = new SpeechSynthesisUtterance(text);
   let facialExpression = document.querySelector("img");
 
-  // change the image when speaking starts/ends
+  // Change the image when speaking starts/ends
   utterance.addEventListener("start", () => {
     facialExpression.src = "assets/images/smiling-open.png";
   });
@@ -53,11 +52,11 @@ function speakText(text, selectedVoiceName) {
     facialExpression.src = "assets/images/smiling.png";
   });
 
-  let voices = synth.getVoices();  // get all available voices
+  let voices = synth.getVoices();  // Retrieve all available voices
   let selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
   if (selectedVoice) {
-    utterance.voice = selectedVoice;  // set the voice to selected voice
+    utterance.voice = selectedVoice;  // Set the voice to the selected voice
   }
 
-  synth.speak(utterance);  // start speaking
+  synth.speak(utterance);  // Start speaking
 }
