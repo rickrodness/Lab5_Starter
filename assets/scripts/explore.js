@@ -14,12 +14,14 @@ function initialize() {
 // setup the dropdown menu for voice selection with dynamically loaded voice options
 function setupVoiceSelection() {
   const voiceDropdown = document.getElementById("voice-select");
-  speechSynthesisEngine.onvoiceschanged = populateVoices;
-
-  // populate the voice select dropdown with available speech synthesis voices
   function populateVoices() {
     const voices = speechSynthesisEngine.getVoices();
-    voiceDropdown.innerHTML = ''; // clear existing options
+    if (!voices.length) {
+      console.log("No voices found. Trying again...");
+      setTimeout(populateVoices, 250);
+      return;
+    }
+    voiceDropdown.innerHTML = '';
     voices.forEach(voice => {
       const option = document.createElement("option");
       option.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — DEFAULT' : ''}`;
@@ -28,6 +30,9 @@ function setupVoiceSelection() {
       voiceDropdown.appendChild(option);
     });
   }
+  
+  speechSynthesisEngine.onvoiceschanged = populateVoices;
+  populateVoices(); 
 }
 
 // setup the button that triggers speech synthesis
